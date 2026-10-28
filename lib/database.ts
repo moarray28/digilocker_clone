@@ -48,7 +48,9 @@ function createDatabasePool(): Pool {
     // Hosted Supabase connections must use TLS.
     ssl: local ? undefined : { ca, rejectUnauthorized: true },
 
-    // Keep the per-instance connection count low on Vercel.
+    // Keep the per-instance connection count low on Vercel. Transaction-mode
+    // Supavisor does not support named prepared statements.
+    ...(url.port === "6543" ? { query_mode: "simple" as const } : {}),
     max: 1,
     connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 10000,

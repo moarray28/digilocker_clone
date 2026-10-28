@@ -38,6 +38,9 @@ const databaseUrl = required("DATABASE_URL", (value) => {
 if (databaseUrl) {
   const url = new URL(databaseUrl);
   const local = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  if (!local && url.port === "6543" && url.searchParams.get("sslmode") !== "verify-full") {
+    problems.push("Hosted transaction-pooler DATABASE_URL must use sslmode=verify-full.");
+  }
   if (!local && url.searchParams.get("sslmode") !== "verify-full") {
     problems.push("DATABASE_URL must use sslmode=verify-full for hosted PostgreSQL.");
   }
