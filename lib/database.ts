@@ -1,5 +1,7 @@
 
 import "server-only";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { Pool } from "pg";
 
 const globalForDatabase = globalThis as typeof globalThis & {
@@ -20,9 +22,20 @@ function createDatabasePool(): Pool {
   }
 
   const local = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+  const sslMode = url.searchParams.get("sslmode");
+  const certificatePath = url.searchParams.get("sslrootcert");
+  const ca = process.env.DATABASE_SSL_CA?.trim()
+    || (certificatePath ? readFileSync(resolve(process.cwd(), certificatePath), "utf8") : undefined);
 
-  // Remove certificate file options so node-postgres does not
-  // attempt to load a certificate from the deployment filesystem.
+  if (!local && sslMode && sslMode !== "verify-full") {
+    throw new Error("Hosted PostgreSQL requires sslmode=verify-full in DATABASE_URL.");
+  }
+  if (!local && !ca) {
+    throw new Error("Set DATABASE_SSL_CA to the Supabase root certificate for hosted PostgreSQL.");
+  }
+
+  // node-postgres replaces the explicit SSL object when these options remain
+  // in the connection URL, so load the CA above and remove the TLS parameters.
   url.searchParams.delete("sslrootcert");
   url.searchParams.delete("sslcert");
   url.searchParams.delete("sslkey");
@@ -33,11 +46,7 @@ function createDatabasePool(): Pool {
 
     // Local development can use a non-TLS local database.
     // Hosted Supabase connections must use TLS.
-    ssl: local
-      ? undefined
-      : {
-          rejectUnauthorized: true,
-        },
+    ssl: local ? undefined : { ca, rejectUnauthorized: true },
 
     // Keep the per-instance connection count low on Vercel.
     max: 1,
