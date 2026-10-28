@@ -26,12 +26,14 @@ function createDatabasePool(): Pool {
   const certificatePath = url.searchParams.get("sslrootcert");
   const ca = process.env.DATABASE_SSL_CA?.trim()
     || (certificatePath ? readFileSync(resolve(process.cwd(), certificatePath), "utf8") : undefined);
+  const transactionPooler = url.port === "6543"
+    && url.hostname.endsWith(".pooler.supabase.com");
 
-  if (!local && sslMode && sslMode !== "verify-full") {
-    throw new Error("Hosted PostgreSQL requires sslmode=verify-full in DATABASE_URL.");
+  if (!local && transactionPooler && sslMode === "verify-full" && !ca) {
+    throw new Error("sslmode=verify-full requires DATABASE_SSL_CA or sslrootcert.");
   }
-  if (!local && !ca) {
-    throw new Error("Set DATABASE_SSL_CA to the Supabase root certificate for hosted PostgreSQL.");
+  if (!local && !transactionPooler && !ca && sslMode !== "require" && sslMode !== "no-verify") {
+    throw new Error("Use sslmode=require for the Vercel transaction pooler, or set DATABASE_SSL_CA to verify the certificate.");
   }
 
   // node-postgres replaces the explicit SSL object when these options remain
@@ -44,9 +46,11 @@ function createDatabasePool(): Pool {
   return new Pool({
     connectionString: url.toString(),
 
-    // Local development can use a non-TLS local database.
-    // Hosted Supabase connections must use TLS.
-    ssl: local ? undefined : { ca, rejectUnauthorized: true },
+    // Supabase's shared transaction pooler uses TLS. CA verification is
+    // optional; when configured, verify the server certificate and hostname.
+    ssl: local ? undefined : ca
+      ? { ca, rejectUnauthorized: true }
+      : { rejectUnauthorized: false },
 
     // Keep the per-instance connection count low on Vercel. Transaction-mode
     // Supavisor does not support named prepared statements.
