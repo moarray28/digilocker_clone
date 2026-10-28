@@ -182,3 +182,12 @@ User request (sanitized): Resolve Supabase signup TLS error and simplify setup s
 Changes made: Removed the separate DATABASE_SSL_CERT_PATH setting from local configuration and setup docs. Standardized the PostgreSQL TLS configuration in DATABASE_URL with sslmode=verify-full and sslrootcert pointing to the existing local Supabase CA file. Kept the application database client and migration utility on the same connection-string TLS settings. Corrected README/setup guidance and appended no credential values.
 Validation: npm run setup:check passed; the installed PostgreSQL URL parser loaded the CA file and verify-full mode; npm run supabase:check connected to PostgreSQL with verified TLS and confirmed the private Storage bucket; npm run lint and npm run typecheck passed.
 Open issues: Restart the dev server so it reloads the updated .env.local, then retry signup/login. No credentials, CA contents, or database rows were printed.
+---
+Timestamp: 2026-10-28T19:50:32+05:30
+Agent type: Codex
+Model: GPT-6
+User request (sanitized): Advance the interview MVP and explain how to add synthetic issuer records.
+Recommendation: Keep issuer fixtures in Supabase PostgreSQL and provide an idempotent SQL insertion path. Reject malformed lookup input before creating request state.
+Changes made: Added early server-side validation to the certificate request route so malformed lookup details return HTTP 400 before database request creation. Added a synthetic issuer SQL example and exact re-seeding instructions to docs-issuer.md; updated README milestone status.
+Validation: npm run setup:check passed; npm run typecheck passed; npm test passed (7 tests). npm run lint started but stalled without output and was stopped. No production build run.
+Open issues: User should add only fictional records. Complete deployed retrieval/failure-state and two-account ownership checks; investigate lint stall if it recurs.

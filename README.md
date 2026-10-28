@@ -490,14 +490,16 @@ Work in small stages. Do not start by implementing every feature at once.
 **Milestone 7 — End-to-end wallet**
 - Implemented the authenticated wallet request form, synthetic issuer lookup, separate signature/digest checks, current-status check, PostgreSQL lifecycle, and private Supabase Storage upload.
 - Implemented owner-scoped document list and PDF routes with fresh status and stored-file digest checks.
-- Pending Supabase-backed end-to-end verification and browser checks at phone and desktop sizes.
+- Signup/login and Supabase PostgreSQL/Storage connectivity are working. The user has not yet confirmed the certificate retrieval flow in the deployed Vercel app.
+- Mobile/desktop browser checks and a two-account owner-isolation check remain to be completed.
 
 **Milestone 8 — Hardening and handoff**
 - Added independent unit tests for synthetic lookup validation, digest/signature separation, modified manifests, untrusted issuer IDs, untrusted key IDs, and wrong signing keys. Run these with `npm test`.
 - `npm test`, `npm run lint`, and `npm run typecheck` have passed in the current workspace.
 - Better Auth and wallet schema migrations ran successfully, and the five synthetic issuer scenarios were seeded. The Supabase Storage API check succeeds; `certificate-files` was created private with PDF-only uploads and a 10 MB limit.
 - Signup/login work against Supabase. `npm run supabase:check` confirms PostgreSQL connectivity and the private Storage bucket.
-- `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` pass. The production build uses Next.js's supported Webpack builder for reliable local and hosted builds.
+- Latest verification: `npm test`, `npm run typecheck`, and `npm run setup:check` pass. `npm run lint` stalled without output during the latest run, and a production build was not rerun after the most recent database configuration change. An earlier Webpack production build completed successfully.
+- Invalid lookup input is now rejected with HTTP 400 before a request row is created. Added a repeatable SQL example for adding fictional issuer records in `docs-issuer.md`.
 - Remaining interview-demo checks: retrieve a synthetic fixture, try unavailable/revoked/superseded/signature-failure cases, and verify owner isolation in two accounts. The local Turbopack build hit a sandbox worker-start failure; the configured Webpack production build completed successfully.
 - Review environment handling, repository history, logs, access policies, and error responses.
 - Update this README with actual implementation details, exact setup commands, known limitations, and test results.

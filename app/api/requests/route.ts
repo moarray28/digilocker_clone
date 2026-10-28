@@ -1,8 +1,14 @@
 import { auth } from "@/auth";
 import { calculateSha256, verifyIssuerArtifact } from "@/lib/crypto/issuer-manifest";
 import { database } from "@/lib/database";
-import { IssuerConfigurationError, IssuerUnavailableError } from "@/lib/issuer/types";
+import {
+  InvalidCertificateLookupError,
+  IssuerConfigurationError,
+  IssuerUnavailableError,
+  type CertificateLookup,
+} from "@/lib/issuer/types";
 import { simulatedIssuerAdapter } from "@/lib/issuer/simulated-issuer";
+import { validateCertificateLookup } from "@/lib/issuer/validate-lookup";
 import { removePrivatePdf, uploadPrivatePdf } from "@/lib/storage/private-bucket";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -26,8 +32,15 @@ export async function POST(request: Request) {
   const idempotencyKey = request.headers.get("idempotency-key");
   if (!idempotencyKey || !/^[0-9a-f-]{36}$/i.test(idempotencyKey)) return fail("Refresh and try again.", 400);
 
-  let lookup: unknown;
-  try { lookup = await request.json(); } catch { return fail("Enter valid sample details.", 400); }
+  let lookup: CertificateLookup;
+  try {
+    lookup = validateCertificateLookup(await request.json());
+  } catch (error) {
+    if (error instanceof InvalidCertificateLookupError) {
+      return fail("Enter valid synthetic sample details.", 400);
+    }
+    return fail("Enter valid sample details.", 400);
+  }
 
   const requestId = randomUUID();
   try {
