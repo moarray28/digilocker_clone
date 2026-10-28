@@ -1,0 +1,184 @@
+---
+Timestamp: 2026-10-28T00:45:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Read the project README and set up the Next.js project.
+Agent recommendation: Initialize a root-level Next.js App Router TypeScript project, use the README's white and purple visual direction, and keep this step within the UI skeleton milestone.
+Changes made: Added a manual Next.js/Tailwind scaffold and responsive synthetic-data wallet empty-state screen. Existing README preserved. No authentication, issuer lookup, database, storage, or certificate verification was implemented.
+Validation: Official Next.js installation documentation reviewed. create-next-app and npm registry commands stalled in the environment; dependency installation and build/type/lint commands not run.
+Open issues: Install dependencies and run validation when registry access is available; complete remaining MVP milestones separately.
+---
+---
+Timestamp: 2026-10-28T01:05:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue the project setup with the next README process.
+Agent recommendation: Select a maintained Next.js-compatible OAuth provider and guard wallet access on the server; do not create local password/session handling.
+Changes made: Planned Auth.js Google OAuth integration and server-side session checks for the wallet route.
+Validation: Auth.js official Next.js, provider, and environment documentation reviewed; implementation pending.
+Open issues: Google OAuth client credentials must be configured locally before sign-in can complete.
+---
+---
+Timestamp: 2026-10-28T01:15:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue to the next project setup process.
+Agent recommendation: Use Auth.js Google OAuth rather than a locally invented password flow; enforce access to wallet routes using server-validated sessions.
+Changes made: Added Auth.js configuration, OAuth callback route, sign-in page, wallet page, route protection, and provider decision/setup documentation. Added OAuth credentials and Auth.js secret requirements to the existing environment template.
+Validation: Official Auth.js documentation reviewed. npm install next-auth@beta attempted in sandbox and with approved network access but remained stalled; lint/type/build validation not run.
+Open issues: Install dependency and configure Google OAuth credentials locally before login can work. OAuth requires internet access and Google Cloud Console setup.
+---
+---
+Timestamp: 2026-10-28T01:25:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue to the next project setup process.
+Agent recommendation: Use Auth.js Google OAuth rather than a locally invented password flow; enforce access to wallet routes using server-validated sessions.
+Changes made: Added Auth.js configuration, OAuth callback route, sign-in page, wallet page, route protection, environment template, and provider decision/setup documentation. Added the required activity record.
+Validation: Official Auth.js documentation reviewed. npm install next-auth@beta attempted in sandbox and with approved network access but remained stalled; lint/type/build validation not run.
+Open issues: Install dependency and configure Google OAuth credentials locally before login can work. OAuth requires Google Cloud Console setup.
+---
+---
+Timestamp: 2026-10-28T00:22:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue with the next project milestone.
+Agent recommendation: Use Auth.js Google OAuth and server-validated sessions; keep account authentication distinct from demo identity checks for certificate retrieval.
+Changes made: Added Auth.js configuration and callback route, Google sign-in/sign-out UI, protected wallet page and route proxy, environment variables, and provider decision/setup notes. Updated this activity log.
+Validation: Reviewed official Auth.js and Next.js Proxy documentation. `npm install next-auth@beta` and `npm install` were attempted, including with approved network access, but did not complete; no package lockfile was generated and lint/type/build checks were not run.
+Open issues: Install dependencies and configure Google OAuth credentials locally before sign-in is usable. Demo identity verification, persistence, and issuer workflow remain unimplemented.
+---
+---
+Timestamp: 2026-10-28T00:35:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Replace the rejected OAuth sign-in with JavaScript email/password authentication backed by PostgreSQL and support initial synthetic demo data.
+Agent recommendation: Remove OAuth entirely and use a maintained Next.js auth library with built-in password hashing and PostgreSQL persistence; keep certificate identity checks separate.
+Changes made: In progress — replacing the earlier Auth.js OAuth scaffold with Better Auth, PostgreSQL, email/password UI, and demo seed support.
+Validation: Better Auth official installation, PostgreSQL, password, and Next.js integration docs reviewed.
+Open issues: Dependency installation, generated database schema, and local verification remain pending.
+---
+---
+Timestamp: 2026-10-28T00:48:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Replace the rejected OAuth sign-in with JavaScript email/password authentication backed by PostgreSQL and support initial synthetic demo data.
+Agent recommendation: Use Better Auth with its built-in scrypt password hashing, PostgreSQL persistence, and server-verified sessions; do not implement custom password or session cryptography.
+Changes made: Removed NextAuth/Google OAuth configuration and callback. Added Better Auth PostgreSQL configuration and API route, email/password sign-in and sign-up pages, protected wallet session check, demo account seed script, environment variables, migration/seed npm commands, and updated setup documentation and README environment example.
+Validation: Better Auth official installation, PostgreSQL, email/password, Next.js, and CLI guidance reviewed. `package.json` JSON parse succeeded; checked for remaining OAuth config/callback code. Dependency installation stalled even with approved network access; no lockfile was created, so type/lint/build and database migration were not run.
+Open issues: Install dependencies, configure Supabase PostgreSQL and local Better Auth secret, apply the Better Auth migration, then seed a synthetic account. Synthetic issuer records and certificate retrieval remain future milestones.
+---
+---
+Timestamp: 2026-10-28T01:10:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue to the next project milestone.
+Agent recommendation: Implement PostgreSQL persistence and synthetic issuer fixtures in versioned SQL, with user ownership and idempotency constraints; never persist raw lookup inputs or certificate bytes in the application database.
+Changes made: Planned versioned app migrations, a separate synthetic issuer seed, migration runner, and documentation updates.
+Validation: Reviewed README data-model, ownership, idempotency, and failure-state requirements.
+Open issues: Dependency installation is still unavailable; SQL and runner cannot be executed against a configured database in this workspace.
+---
+---
+Timestamp: 2026-10-28T01:35:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue to the next project milestone.
+Agent recommendation: Build versioned PostgreSQL persistence and synthetic issuer fixtures with owner/idempotency constraints, separating integrity, signature, and current-status fields.
+Changes made: Added an app migration runner and transactional migration tracking; added schema for issuer registry, synthetic issuer records, request states, wallet metadata, and audit events; added synthetic active/revoked/superseded/invalid-signature seed cases; added CLI scripts and documented schema and setup commands. Updated Better Auth migration loading for `.env.local` and added a TypeScript script loader compatible with the documented Node baseline.
+Validation: `node --check` passed for the four database scripts; `package.json` parses. Reviewed schema and seeds statically. No application tests were requested or run. `npm install` remains stalled; SQL migration and seed were not run because dependencies and database configuration are unavailable.
+Open issues: Install dependencies, configure Supabase PostgreSQL, run auth/app migrations and synthetic seed, then build the issuer adapter and retrieval workflow.
+---
+---
+Timestamp: 2026-10-28T02:00:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue the project to its next milestone.
+Agent recommendation: Implement a server-only synthetic issuer adapter backed by seeded PostgreSQL rows, generate a visibly marked test PDF, sign a manifest with a local Ed25519 test key, and keep signature/integrity/status checks separate.
+Changes made: In progress — adding issuer types, lookup/status adapter, deterministic PDF generation, key generation, signature/integrity helpers, and local failure controls.
+Validation: Reviewed README simulated-issuer and verification requirements; verified current pdf-lib API/package information against official package/docs.
+Open issues: Dependency installation and database configuration remain unavailable, so issuer rows and generated keys cannot yet be exercised in app flow.
+---
+---
+Timestamp: 2026-10-28T02:18:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue to the next project milestone.
+Agent recommendation: Create a server-only simulated issuer adapter that signs a PDF digest manifest with an ignored local Ed25519 test key, while checking integrity, signature, and current status independently.
+Changes made: Added typed lookup/status adapter backed by synthetic PostgreSQL rows; input validation; synthetic, visibly marked PDF generation with pdf-lib; manifest canonicalization and SHA-256/Ed25519 verification helpers; unavailable/status-unavailable and invalid-signature scenarios; local test key generator; `.secrets/` ignore rule; environment values, dependencies, scripts, and issuer setup documentation. Generated a local Ed25519 key pair under ignored `.secrets/`.
+Validation: Reviewed the README's simulated issuer/security requirements and official pdf-lib API/package docs. `node --check` passed for all five scripts and `package.json` parses. `npm install` stalled again, so no lockfile was created and the TypeScript/PDF/database integration could not be built or executed.
+Open issues: Install dependencies, configure PostgreSQL and `.env.local`, run migrations/seeds, then connect the adapter to the authenticated request and verification workflow. Synthetic field matching is not real identity verification.
+---
+---
+Timestamp: 2026-10-28T02:32:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Continue the project and provide a visible UI preview.
+Agent recommendation: Provide an interactive, clearly labeled synthetic UI preview that does not claim to retrieve or verify certificates until the request workflow is connected.
+Changes made: In progress — replacing the root stub with responsive wallet, request, document detail, and verification-state preview screens.
+Validation: Inspected the existing scaffold and confirmed package-lock plus Next.js, Better Auth, and pdf-lib are now present in node_modules after the prior delayed npm install.
+Open issues: UI must stay explicitly preview-only because no authenticated issuer request workflow is wired yet.
+---
+---
+Timestamp: 2026-10-28T02:52:00+05:30
+Agent type: Codex
+Model: gpt-6
+User request (sanitized): Add a visible UI preview for the certificate wallet.
+Agent recommendation: Make the request, wallet, certificate, and verification screens explorable while labeling all data and outcomes as UI-only; do not imply real records or checks.
+Changes made: Replaced the root placeholder with an interactive responsive wallet UI preview containing Overview, My Documents, Get a Document, and Certificate Preview views; added selectable sample response states and explicit not-run verification indicators. Kept the example certificate fictitious and marked it not retrieved/stored. Started the preview navigation in the Codex browser panel.
+Validation: Confirmed dependencies and package lock are present. Existing Next.js dev server is running on localhost:3000 and the log shows successful prior page compilation; browser preview navigation was queued. Windows Computer Use inspection was not approved. No test suite was run.
+Open issues: UI actions remain preview-only; no authenticated request was sent and no signature/status checks were executed.
+---
+Timestamp: 2026-10-28T15:47:21+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Improve the wallet's home-screen UX and continue the required implementation.
+Agent recommendation: Simplify the overview, then connect the authenticated synthetic certificate retrieval path while preserving separate integrity, signature, and status checks and private owner-scoped document access.
+Changes made: Reduced the overview to a welcome, document count, primary action, and empty state; kept preview disclosures on secondary screens. Added authenticated request API, lifecycle updates, synthetic issuer lookup, digest and signature verification, current-status gating, transactional document metadata and audit writes, server-only private Supabase Storage helpers, owner-scoped document listing and PDF display/download with fresh status and digest checks, and a signed-in wallet request/list UI. Added a distinct integrity-failure lifecycle state and migration, and made failed idempotent requests return their recorded safe outcome. Updated issuer/storage setup documentation. Fixed the existing ESLint flat-config syntax and narrowed the lint script to source directories.
+Validation: `npm run typecheck` passed. Focused ESLint over changed app, component, server, storage, and config files passed. Full `npm run lint` initially exposed the existing ESLint config parse issue; after fixing it, the repository-wide command was slow and was stopped, so the scoped lint command is the recorded pass. Automated tests and production build were not run.
+Open issues: Supabase PostgreSQL and private Storage are not configured in this workspace, so migration, seeds, issuer request flow, and PDF access remain unverified end to end. Need verify private bucket policies, status failure scenarios, owner isolation, mobile/desktop browser behavior, and the production build before MVP handoff.
+Validation correction: After limiting ESLint to source/config directories, `npm run lint` passed. `npm run typecheck` passed after the final route changes. Supabase Storage REST endpoints use private authenticated download and object-collection deletion calls; checked against official Supabase Storage documentation. Production build and automated tests remain not run.
+---
+Timestamp: 2026-10-28T15:51:36+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Continue to the next project step.
+Agent recommendation: Improve local setup readiness so required database, auth, storage, and issuer key configuration can be checked safely before starting the synthetic wallet flow.
+Changes made: Added `npm run setup:check`, which loads `.env.local`, checks required variable presence and safe formats, enforces TLS mode for hosted PostgreSQL URLs, and cryptographically confirms the local Ed25519 private/public key pair matches without displaying secret values. Updated project setup documentation for private bucket, migrations, synthetic seeds, and the connected retrieval workflow.
+Validation: Not run in this task; the preflight requires user-provided local environment values.
+Open issues: Supabase environment configuration, private bucket confirmation, migrations/seeds, manual end-to-end walkthrough, security tests, and production build remain.
+---
+Timestamp: 2026-10-28T16:57:20+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Remove environment variables that are not required by the application.
+Agent recommendation: Compare variable names only against runtime and setup-script usage; retain the five settings required for authentication, PostgreSQL, Supabase Storage, and issuer trust.
+Changes made: Removed optional/defaulted values from the root `.env` that was present at inspection. Updated migration, seeding, and key-generation scripts to load Next.js environment files consistently, so `.env` and `.env.local` both work. Made the preflight accept documented defaults for URL, bucket, issuer key paths, and failure mode. The current `.env.local` contains only the five required variable names; no values were read into output.
+Validation: `npm run setup:check` ran and reported `BETTER_AUTH_SECRET` invalid, `DATABASE_URL` invalid, and `SUPABASE_SERVICE_ROLE_KEY` missing. Values were not displayed. Remaining variable names were inspected only.
+Open issues: Fill those three required settings before running auth/app migrations, seed scripts, or the retrieval flow. The issuer key pair is checked by the preflight and generated from default paths if needed.
+---
+Timestamp: 2026-10-28T17:17:11+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Check Supabase connectivity, proceed with remaining implementation, and clarify/fix the Better Auth schema and Storage key setup.
+Agent recommendation: Confirm connections without exposing credentials, apply the documented migrations and synthetic seed when connected, use Supabase's current server-only Secret key convention, and require verified TLS for hosted PostgreSQL.
+Changes made: Auth schema migration completed; wallet migrations 001 and 002 applied; five synthetic issuer scenarios seeded. Replaced the low-entropy local Better Auth secret with 256-bit random material (value not logged). Added support for `SUPABASE_SECRET_KEY` using the `apikey` header and retained legacy `SUPABASE_SERVICE_ROLE_KEY` JWT support. Documented the dashboard path and added safe setup/connectivity commands. Created `certificate-files` as a private Storage bucket with PDF-only uploads and a 10 MB limit. Added PostgreSQL root-certificate loading and a friendly missing-certificate error. Updated `.env.local` to use `sslmode=verify-full` and a local root certificate path without displaying its URL.
+Validation: Storage API connectivity succeeded and the bucket was confirmed private. `npm test` passed (7 unit tests), `npm run typecheck` passed, and `npm run lint` passed. PostgreSQL schema migration and seed commands succeeded before certificate verification was enforced. A later read-only check could not test PostgreSQL because `.secrets/supabase-root.crt` is missing. `npm run setup:check` identifies that missing certificate. Production builds failed in the environment: Turbopack worker startup panic and webpack `.next` EPERM; the requested outside-sandbox build rerun was declined.
+Open issues: Download the project root certificate from Supabase Database Settings → SSL Configuration to `.secrets/supabase-root.crt`, restart the dev server, and rerun `npm run setup:check` and `npm run supabase:check`. Then manually complete signup/retrieval, cross-owner/storage failure checks, and browser-size checks. Production build remains unverified.
+---
+Timestamp: 2026-10-28T17:20:30+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Diagnose a failed sign-up/login request.
+Agent recommendation: Identify the immediate server-side cause from the log and inspect only whether the configured TLS certificate file exists; do not reveal environment values.
+Changes made: Confirmed `.secrets/` contains only the issuer test key pair and not `supabase-root.crt`. No application code or environment values were changed.
+Validation: Read-only check of `.secrets/` filenames and the presence (not values) of database environment settings. Sign-up is blocked because the configured Supabase root certificate file is absent.
+Open issues: Download the Supabase database root certificate into `.secrets/supabase-root.crt`, then restart the dev server and rerun connectivity checks.
+---
+---
+Timestamp: 2026-10-28T17:30:44+05:30
+Agent type: Codex
+Model: GPT-6
+User request (sanitized): Resolve Supabase signup TLS error and simplify setup so the app is easy to configure.
+Changes made: Removed the separate DATABASE_SSL_CERT_PATH setting from local configuration and setup docs. Standardized the PostgreSQL TLS configuration in DATABASE_URL with sslmode=verify-full and sslrootcert pointing to the existing local Supabase CA file. Kept the application database client and migration utility on the same connection-string TLS settings. Corrected README/setup guidance and appended no credential values.
+Validation: npm run setup:check passed; the installed PostgreSQL URL parser loaded the CA file and verify-full mode; npm run supabase:check connected to PostgreSQL with verified TLS and confirmed the private Storage bucket; npm run lint and npm run typecheck passed.
+Open issues: Restart the dev server so it reloads the updated .env.local, then retry signup/login. No credentials, CA contents, or database rows were printed.

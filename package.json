@@ -1,0 +1,41 @@
+{
+  "name": "certificate-wallet",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint app components lib scripts tests auth.ts proxy.ts eslint.config.mjs",
+    "test": "node --import tsx --test tests/issuer-validation.test.ts tests/manifest-core.test.ts",
+    "typecheck": "tsc --noEmit",
+    "setup:check": "node scripts/check-local-setup.mjs",
+    "supabase:check": "node scripts/check-supabase-connectivity.mjs",
+    "supabase:bucket:create": "node scripts/ensure-private-bucket.mjs",
+    "db:auth:migrate": "node scripts/migrate-auth.mjs",
+    "db:seed:demo-user": "node --import tsx scripts/seed-demo-user.mjs",
+    "db:app:migrate": "node --import tsx scripts/migrate-app.mjs",
+    "db:seed:issuer": "node --import tsx scripts/seed-synthetic-issuer.mjs",
+    "issuer:keys:generate": "node scripts/generate-issuer-test-keys.mjs"
+  },
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "better-auth": "^1.7.13",
+    "pg": "^8.16.0",
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.0.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.9.0",
+    "@types/pg": "^8.15.0",
+    "tsx": "^4.23.15"
+  }
+}
