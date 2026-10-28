@@ -55,7 +55,7 @@ The issuer's signature establishes authenticity and integrity under the configur
 - Store certificate files in a **private** Supabase Storage bucket. Never make the bucket public.
 - Use server-side, short-lived access or authenticated download routes. If signed URLs are used, keep their lifetime short and issue them only after authorization and current-status checks. Do not put long-lived public links in the wallet.
 - Supabase Storage's platform encryption is not a substitute for application-level access control. Document the chosen storage protections and threat model.
-- For this MVP, use TLS for network traffic and private-bucket access controls. Add application-level envelope encryption only if it can be implemented with a clear key-management design and tests; do not add homemade cryptography. If envelope encryption is implemented, encrypt each file with a data-encryption key (DEK), protect the DEK with a separately managed key-encryption key (KEK), and keep key material out of the database, browser, repository, and logs.
+- Use private-bucket access controls. The current interview-demo database connection uses plain TCP; restore database TLS before using real user data. Add application-level envelope encryption only with a clear key-management design and tests; do not add homemade cryptography.
 - Do not claim protection against a fully compromised authorized application server. Keep the threat model explicit.
 - Do not re-sign the issuer's certificate with a platform key. The platform may record its own verification receipt/metadata separately, but must clearly state what that receipt attests to.
 
@@ -296,9 +296,9 @@ Example variables (adapt names to the selected libraries):
 BETTER_AUTH_SECRET=
 BETTER_AUTH_URL=http://localhost:3000
 
-# Supabase PostgreSQL connection string — server only; use TLS
+# Supabase PostgreSQL connection string — server only
 DATABASE_URL=
-# Add sslmode=verify-full&sslrootcert=./.secrets/prod-ca-2021.crt to DATABASE_URL
+# Vercel should use Supabase's shared transaction pooler.
 
 # Optional synthetic demo account seed — keep password only in a local env file
 DEMO_ACCOUNT_NAME=Demo Citizen
@@ -322,15 +322,15 @@ These are illustrative names, not guaranteed package-specific variables. Confirm
 
 Add `.env.local`, local databases, private keys, generated PDFs containing test identity data, and other secrets to `.gitignore`. Use only synthetic data in committed fixtures.
 
-Run `npm run setup:check` after configuring the local environment. It validates required setting presence and safe formats and confirms the local issuer key pair matches without printing secret values. The database client always requires TLS certificate verification for hosted PostgreSQL. Node.js uses its built-in trusted certificate authorities by default; a custom root CA is optional. If needed, download the Supabase database root certificate from **Database Settings → SSL Configuration**, save it under the ignored `.secrets/` directory, and add its path as `sslrootcert=./.secrets/prod-ca-2021.crt` in local `DATABASE_URL`, or set `DATABASE_SSL_CA` to its PEM contents on Vercel. Run `npm run supabase:bucket:create` to create the PDF-only private bucket, then run `npm run supabase:check` for read-only PostgreSQL and bucket connectivity checks; these commands never print keys, database rows, or response bodies.
+Run `npm run setup:check` after configuring the local environment. It validates required setting presence and safe formats and confirms the local issuer key pair matches without printing secret values. The current interview-demo database connection uses plain TCP. Run `npm run supabase:bucket:create` to create the PDF-only private bucket, then run `npm run supabase:check` for read-only PostgreSQL and bucket connectivity checks; these commands never print keys, database rows, or response bodies.
 
 For Supabase Storage, copy the **Secret key** from **Project Settings → API Keys → Secret keys** into `SUPABASE_SECRET_KEY` in `.env.local`. It begins with `sb_secret_`; do not use the publishable key. The legacy `service_role` key is supported in `SUPABASE_SERVICE_ROLE_KEY`, but new projects should use the Secret key. This API key is only for server-side Storage requests; PostgreSQL migrations and Better Auth use `DATABASE_URL`. Never paste either secret key into chat or expose it to the browser. See [Supabase API key guidance](https://supabase.com/docs/guides/getting-started/api-keys).
 
-If signup returns a database TLS verification error, configure the Supabase root CA as `DATABASE_SSL_CA` on Vercel or `sslrootcert` in local `DATABASE_URL`. The app keeps certificate verification enabled.
+If signup returns a database connection error, check the `DATABASE_URL` host, username, password, and pooler mode.
 
 ### Vercel deployment
 
-The app uses Node.js server routes and can be deployed as a Next.js project on Vercel. For Vercel, use Supabase's **shared transaction pooler** connection string from Project → Connect → Transaction pooler; the direct `db.<project>.supabase.co` endpoint is IPv6-only on most plans, while Vercel requires an IPv4-reachable endpoint. The app disables named prepared statements on port `6543` for transaction-pooler compatibility. Hosted connections use TLS with certificate verification enabled. Node.js uses its built-in trusted certificate authorities; set `DATABASE_SSL_CA` to the full Supabase root CA PEM only if the server chain is not trusted by Node. Remove local `sslrootcert=./.secrets/...` file paths from the Vercel connection URL. Configure these server-side variables in Vercel for Preview and Production: `DATABASE_URL`, `BETTER_AUTH_SECRET` (a fresh random secret of at least 32 characters), `BETTER_AUTH_URL` (the exact deployed origin, such as `https://your-project.vercel.app`), `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and `ISSUER_TEST_KEY_ID`. For this synthetic demo, also configure `ISSUER_TEST_PRIVATE_KEY` and `ISSUER_TRUSTED_PUBLIC_KEY` with the PEM contents of the local issuer key pair; local key-file paths remain available for development. Never use `NEXT_PUBLIC_` for any of these values. Apply auth/app migrations and issuer seed to the production Supabase project before deploying. After setting or changing variables, redeploy so the deployment receives them. Vercel's Node.js functions support environment variables for runtime connection and certificate configuration ([Vercel environment variables](https://vercel.com/docs/environment-variables)); see [Next.js deployment options](https://nextjs.org/docs/app/getting-started/deploying).
+The app uses Node.js server routes and can be deployed as a Next.js project on Vercel. For Vercel, use Supabase's **shared transaction pooler** connection string from Project → Connect → Transaction pooler; the direct `db.<project>.supabase.co` endpoint is IPv6-only on most plans, while Vercel requires an IPv4-reachable endpoint. The app disables named prepared statements on port `6543` for transaction-pooler compatibility. This interview-demo configuration currently uses plain TCP because TLS negotiation failed for the configured endpoint. Do not use it with real personal documents or production user accounts. Configure these server-side variables in Vercel for Preview and Production: `DATABASE_URL`, `BETTER_AUTH_SECRET` (a fresh random secret of at least 32 characters), `BETTER_AUTH_URL` (the exact deployed origin, such as `https://your-project.vercel.app`), `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and `ISSUER_TEST_KEY_ID`. For this synthetic demo, also configure `ISSUER_TEST_PRIVATE_KEY` and `ISSUER_TRUSTED_PUBLIC_KEY` with the PEM contents of the local issuer key pair; local key-file paths remain available for development. Never use `NEXT_PUBLIC_` for any of these values. Apply auth/app migrations and issuer seed to the production Supabase project before deploying. After setting or changing variables, redeploy so the deployment receives them. See [Vercel environment variables](https://vercel.com/docs/environment-variables) and [Next.js deployment options](https://nextjs.org/docs/app/getting-started/deploying).
 
 ## 10. Supabase PostgreSQL and Storage setup
 
@@ -496,7 +496,7 @@ Work in small stages. Do not start by implementing every feature at once.
 - Added independent unit tests for synthetic lookup validation, digest/signature separation, modified manifests, untrusted issuer IDs, untrusted key IDs, and wrong signing keys. Run these with `npm test`.
 - `npm test`, `npm run lint`, and `npm run typecheck` have passed in the current workspace.
 - Better Auth and wallet schema migrations ran successfully, and the five synthetic issuer scenarios were seeded. The Supabase Storage API check succeeds; `certificate-files` was created private with PDF-only uploads and a 10 MB limit.
-- Signup/login work against Supabase. `npm run supabase:check` confirms verified PostgreSQL TLS and the private Storage bucket.
+- Signup/login work against Supabase. `npm run supabase:check` confirms PostgreSQL connectivity and the private Storage bucket.
 - `npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` pass. The production build uses Next.js's supported Webpack builder for reliable local and hosted builds.
 - Remaining interview-demo checks: retrieve a synthetic fixture, try unavailable/revoked/superseded/signature-failure cases, and verify owner isolation in two accounts. The local Turbopack build hit a sandbox worker-start failure; the configured Webpack production build completed successfully.
 - Review environment handling, repository history, logs, access policies, and error responses.

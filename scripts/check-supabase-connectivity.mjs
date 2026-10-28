@@ -1,6 +1,4 @@
 import nextEnv from "@next/env";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import { Pool } from "pg";
 
 nextEnv.loadEnvConfig(process.cwd());
@@ -50,28 +48,22 @@ if (!databaseUrl) {
   let pool;
   try {
     const url = new URL(databaseUrl);
-    const local = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
-    const sslMode = url.searchParams.get("sslmode");
-    const certificatePath = url.searchParams.get("sslrootcert");
-    const ca = process.env.DATABASE_SSL_CA?.trim()
-      || (certificatePath ? await readFile(resolve(process.cwd(), certificatePath), "utf8") : undefined);
     url.searchParams.delete("sslmode");
     url.searchParams.delete("sslrootcert");
     url.searchParams.delete("sslcert");
     url.searchParams.delete("sslkey");
     pool = new Pool({
       connectionString: url.toString(),
-      ssl: local ? undefined : { ...(ca ? { ca } : {}), rejectUnauthorized: true },
       max: 1,
       connectionTimeoutMillis: 10000,
     });
     await pool.query("SELECT 1");
-    console.log("PostgreSQL: connected with the TLS settings from DATABASE_URL.");
+    console.log("PostgreSQL: connected.");
   } catch (error) {
     const code = error && typeof error === "object" && "code" in error && typeof error.code === "string"
       ? error.code
       : "UNKNOWN";
-    console.log(`PostgreSQL: connection failed (${code}). Check DATABASE_URL and DATABASE_SSL_CA.`);
+    console.log(`PostgreSQL: connection failed (${code}). Check DATABASE_URL and database credentials.`);
     failed = true;
   } finally {
     await pool?.end();

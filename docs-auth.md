@@ -4,7 +4,7 @@ The project uses **Better Auth** for local email/password authentication and **S
 
 ## Local setup
 
-1. Create/configure the Supabase PostgreSQL database and copy its connection string into `DATABASE_URL` in `.env.local` (or `.env`). Use the connection string from the same Supabase project that the app should use. For hosted Supabase, download the project's root certificate from **Database Settings → SSL Configuration** into the ignored `.secrets/` folder, then add `sslmode=verify-full&sslrootcert=./.secrets/prod-ca-2021.crt` to the connection string query. Keep the CA path and TLS mode in `DATABASE_URL`; no separate certificate environment variable is needed.
+1. Create/configure the Supabase PostgreSQL database and copy its connection string into `DATABASE_URL` in `.env.local` (or `.env`). Use the connection string from the same Supabase project that the app should use. For Vercel, use the shared transaction pooler URL. This interview-demo build currently uses plain TCP for database connections.
 2. Add a high-entropy secret of at least 32 characters as `BETTER_AUTH_SECRET` and set `BETTER_AUTH_URL=http://localhost:3000`.
 3. Install packages with `npm install`.
 4. Generate Better Auth's PostgreSQL tables with `npm run db:auth:migrate`. Apply application tables and synthetic issuer fixtures with `npm run db:app:migrate` and `npm run db:seed:issuer`. See `docs-data-model.md`.
@@ -23,7 +23,7 @@ npm run db:app:migrate
 npm run db:seed:issuer
 ```
 
-The first command creates Better Auth's required PostgreSQL tables. The following commands add wallet tables and fictional issuer records. Restart the dev server after successful migrations. Do not create those Better Auth tables by hand. If the first migration cannot connect, correct `DATABASE_URL` (including TLS for hosted Supabase), then rerun it.
+The first command creates Better Auth's required PostgreSQL tables. The following commands add wallet tables and fictional issuer records. Restart the dev server after successful migrations. Do not create those Better Auth tables by hand. If the first migration cannot connect, correct `DATABASE_URL`, then rerun it.
 
 Official references: [Better Auth installation and schema migration](https://better-auth.com/docs/installation), [PostgreSQL adapter](https://github.com/better-auth/better-auth/blob/main/docs/content/docs/adapters/postgresql.mdx), [email/password API and hashing](https://better-auth.com/docs/authentication/email-password), and [Next.js integration](https://github.com/better-auth/better-auth/blob/main/docs/content/docs/integrations/next.mdx).
 

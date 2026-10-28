@@ -1,6 +1,6 @@
 import nextEnv from "@next/env";
 import { createPrivateKey, createPublicKey, sign, verify } from "node:crypto";
-import { access, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 nextEnv.loadEnvConfig(process.cwd());
@@ -38,20 +38,6 @@ const databaseUrl = required("DATABASE_URL", (value) => {
 if (databaseUrl) {
   const url = new URL(databaseUrl);
   const local = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
-  if (!local && url.searchParams.has("sslmode") && !["require", "verify-ca", "verify-full"].includes(url.searchParams.get("sslmode"))) {
-    problems.push("Hosted DATABASE_URL must use TLS (sslmode=require or certificate verification).");
-  }
-  if (!local) {
-    const certPath = url.searchParams.get("sslrootcert");
-    const environmentCa = configured("DATABASE_SSL_CA");
-    if (environmentCa && (!environmentCa.includes("-----BEGIN CERTIFICATE-----") || !environmentCa.includes("-----END CERTIFICATE-----"))) {
-      problems.push("DATABASE_SSL_CA must contain the full PEM-encoded Supabase root certificate.");
-    }
-    if (!environmentCa && certPath) {
-      try { await access(resolve(process.cwd(), certPath)); }
-      catch { problems.push("DATABASE_URL sslrootcert does not point to a readable local certificate file."); }
-    }
-  }
 }
 required("SUPABASE_URL", (value) => {
   try {

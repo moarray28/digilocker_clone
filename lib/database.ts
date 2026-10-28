@@ -1,7 +1,5 @@
 
 import "server-only";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { Pool } from "pg";
 
 const globalForDatabase = globalThis as typeof globalThis & {
@@ -21,14 +19,8 @@ function createDatabasePool(): Pool {
     throw new Error("DATABASE_URL must be a PostgreSQL connection string.");
   }
 
-  const local = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
-  const sslMode = url.searchParams.get("sslmode");
-  const certificatePath = url.searchParams.get("sslrootcert");
-  const ca = process.env.DATABASE_SSL_CA?.trim()
-    || (certificatePath ? readFileSync(resolve(process.cwd(), certificatePath), "utf8") : undefined);
-
-  // node-postgres replaces the explicit SSL object when these options remain
-  // in the connection URL, so load the CA above and remove the TLS parameters.
+  // This demo uses a plain PostgreSQL connection. Strip SSL URL parameters so
+  // node-postgres cannot re-enable TLS from DATABASE_URL.
   url.searchParams.delete("sslrootcert");
   url.searchParams.delete("sslcert");
   url.searchParams.delete("sslkey");
@@ -36,13 +28,6 @@ function createDatabasePool(): Pool {
 
   return new Pool({
     connectionString: url.toString(),
-
-    // Hosted PostgreSQL always uses verified TLS. Node's built-in trust store
-    // is used by default; DATABASE_SSL_CA/sslrootcert can add a Supabase CA.
-    ssl: local ? undefined : {
-      ...(ca ? { ca } : {}),
-      rejectUnauthorized: true,
-    },
 
     // Keep the per-instance connection count low on Vercel. Transaction-mode
     // Supavisor does not support named prepared statements.
