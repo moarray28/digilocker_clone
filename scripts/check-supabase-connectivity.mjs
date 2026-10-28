@@ -61,7 +61,7 @@ if (!databaseUrl) {
     url.searchParams.delete("sslkey");
     pool = new Pool({
       connectionString: url.toString(),
-      ssl: local ? undefined : { ca, rejectUnauthorized: true },
+      ssl: local ? undefined : { ...(ca ? { ca } : {}), rejectUnauthorized: true },
       max: 1,
       connectionTimeoutMillis: 10000,
     });

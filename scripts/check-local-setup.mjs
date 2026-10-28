@@ -38,11 +38,8 @@ const databaseUrl = required("DATABASE_URL", (value) => {
 if (databaseUrl) {
   const url = new URL(databaseUrl);
   const local = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
-  if (!local && url.port === "6543" && url.searchParams.get("sslmode") !== "verify-full") {
-    problems.push("Hosted transaction-pooler DATABASE_URL must use sslmode=verify-full.");
-  }
-  if (!local && url.searchParams.get("sslmode") !== "verify-full") {
-    problems.push("DATABASE_URL must use sslmode=verify-full for hosted PostgreSQL.");
+  if (!local && url.searchParams.has("sslmode") && !["require", "verify-ca", "verify-full"].includes(url.searchParams.get("sslmode"))) {
+    problems.push("Hosted DATABASE_URL must use TLS (sslmode=require or certificate verification).");
   }
   if (!local) {
     const certPath = url.searchParams.get("sslrootcert");
@@ -50,9 +47,7 @@ if (databaseUrl) {
     if (environmentCa && (!environmentCa.includes("-----BEGIN CERTIFICATE-----") || !environmentCa.includes("-----END CERTIFICATE-----"))) {
       problems.push("DATABASE_SSL_CA must contain the full PEM-encoded Supabase root certificate.");
     }
-    if (!certPath && !environmentCa) {
-      problems.push("Set DATABASE_SSL_CA to the Supabase root certificate or configure a local sslrootcert path in DATABASE_URL.");
-    } else if (!environmentCa && certPath) {
+    if (!environmentCa && certPath) {
       try { await access(resolve(process.cwd(), certPath)); }
       catch { problems.push("DATABASE_URL sslrootcert does not point to a readable local certificate file."); }
     }
