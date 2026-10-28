@@ -4,7 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
+export function AuthForm({ mode, returnTo = "/" }: { mode: "sign-in" | "sign-up"; returnTo?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -17,17 +17,22 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     const password = String(formData.get("password") ?? "");
     const name = String(formData.get("name") ?? "").trim();
 
-    const result = isSignUp
-      ? await authClient.signUp.email({ name, email, password, callbackURL: "/wallet" })
-      : await authClient.signIn.email({ email, password, callbackURL: "/wallet" });
+    try {
+      const result = isSignUp
+        ? await authClient.signUp.email({ name, email, password, callbackURL: returnTo })
+        : await authClient.signIn.email({ email, password, callbackURL: returnTo });
 
-    setBusy(false);
-    if (result.error) {
-      setMessage(result.error.message ?? "Unable to authenticate. Check your details and try again.");
-      return;
+      if (result.error) {
+        setMessage(result.error.message ?? "Unable to authenticate. Check your details and try again.");
+        return;
+      }
+      router.replace(returnTo);
+      router.refresh();
+    } catch {
+      setMessage("Unable to reach the authentication service. Please try again.");
+    } finally {
+      setBusy(false);
     }
-    router.push("/wallet");
-    router.refresh();
   }
 
   return <form className="auth-form" action={submit}>
@@ -45,7 +50,7 @@ export function SignOutButton() {
   async function signOut() {
     setBusy(true);
     await authClient.signOut();
-    router.push("/signin");
+    router.replace("/");
     router.refresh();
   }
   return <button className="signout-button" type="button" disabled={busy} onClick={signOut}>{busy ? "Signing out…" : "Sign out"}</button>;
