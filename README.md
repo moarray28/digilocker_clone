@@ -35,7 +35,7 @@ The displayed PDF is a convenient digital copy. Do not promise that displaying a
 - Use a well-maintained authentication library/provider compatible with Next.js, selected and documented before implementation. Do not invent an authentication system or store plaintext passwords.
 - Enforce access checks on the server for every document read, download, request, and mutation. Hiding UI controls is not authorization.
 - Never trust a user ID, document ID, issuer ID, or role supplied by the browser without validating it against the authenticated server-side session and application records.
-- A person knowing a student's name, seat number, exam year, and education level is **not sufficient proof of identity**. For this simulated MVP, use seeded synthetic identities and an explicit test-only identity verification approach. Clearly label it as a demo; do not imply the lookup fields alone are secure identity verification.
+- A person knowing a student's name, seat number, exam year, and education level is **not sufficient proof of identity**. In this demo, each seeded fixture is assigned to exactly one Better Auth user in `issuer_test_record_owners`; the server uses the authenticated session's user ID when querying the issuer. Unassigned accounts receive the same no-match response. This is test-only account binding, not real identity verification. Clearly label it as a demo.
 - Do not expose signing private keys, encryption keys, authentication secrets, storage service credentials, or other secrets in client-side code, logs, source control, or error messages.
 
 ### 2.3 What “validation” means
@@ -312,9 +312,7 @@ SUPABASE_SECRET_KEY=
 SUPABASE_STORAGE_BUCKET=certificate-files
 
 # Simulated issuer — local/test only; private key path is ignored by git
-ISSUER_TEST_KEY_ID=demo-school-key-v1
-ISSUER_TEST_PRIVATE_KEY_PATH=./.secrets/issuer-test-private.pem
-ISSUER_TRUSTED_PUBLIC_KEY_PATH=./.secrets/issuer-test-public.pem
+# Optional failure simulation: none, unavailable, or status_unavailable
 ISSUER_SIMULATED_FAILURE_MODE=none
 ```
 
@@ -322,7 +320,7 @@ These are illustrative names, not guaranteed package-specific variables. Confirm
 
 Add `.env.local`, local databases, private keys, generated PDFs containing test identity data, and other secrets to `.gitignore`. Use only synthetic data in committed fixtures.
 
-Run `npm run setup:check` after configuring the local environment. It validates required setting presence and safe formats and confirms the local issuer key pair matches without printing secret values. The current interview-demo database connection uses plain TCP. Run `npm run supabase:bucket:create` to create the PDF-only private bucket, then run `npm run supabase:check` for read-only PostgreSQL and bucket connectivity checks; these commands never print keys, database rows, or response bodies.
+Run `npm run setup:check` after configuring the local environment. It validates required setting presence and safe formats. The synthetic issuer uses an in-memory demo key pair, so no issuer key files or issuer key variables are needed. The current interview-demo database connection uses plain TCP. Run `npm run supabase:bucket:create` to create the PDF-only private bucket, then run `npm run supabase:check` for read-only PostgreSQL and bucket connectivity checks; these commands never print keys, database rows, or response bodies.
 
 For Supabase Storage, copy the **Secret key** from **Project Settings → API Keys → Secret keys** into `SUPABASE_SECRET_KEY` in `.env.local`. It begins with `sb_secret_`; do not use the publishable key. The legacy `service_role` key is supported in `SUPABASE_SERVICE_ROLE_KEY`, but new projects should use the Secret key. This API key is only for server-side Storage requests; PostgreSQL migrations and Better Auth use `DATABASE_URL`. Never paste either secret key into chat or expose it to the browser. See [Supabase API key guidance](https://supabase.com/docs/guides/getting-started/api-keys).
 
@@ -330,7 +328,7 @@ If signup returns a database connection error, check the `DATABASE_URL` host, us
 
 ### Vercel deployment
 
-The app uses Node.js server routes and can be deployed as a Next.js project on Vercel. For Vercel, use Supabase's **shared transaction pooler** connection string from Project → Connect → Transaction pooler; the direct `db.<project>.supabase.co` endpoint is IPv6-only on most plans, while Vercel requires an IPv4-reachable endpoint. The app disables named prepared statements on port `6543` for transaction-pooler compatibility. This interview-demo configuration currently uses plain TCP because TLS negotiation failed for the configured endpoint. Do not use it with real personal documents or production user accounts. Configure these server-side variables in Vercel for Preview and Production: `DATABASE_URL`, `BETTER_AUTH_SECRET` (a fresh random secret of at least 32 characters), `BETTER_AUTH_URL` (the exact deployed origin, such as `https://your-project.vercel.app`), `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, and `ISSUER_TEST_KEY_ID`. For this synthetic demo, also configure `ISSUER_TEST_PRIVATE_KEY` and `ISSUER_TRUSTED_PUBLIC_KEY` with the PEM contents of the local issuer key pair; local key-file paths remain available for development. Never use `NEXT_PUBLIC_` for any of these values. Apply auth/app migrations and issuer seed to the production Supabase project before deploying. After setting or changing variables, redeploy so the deployment receives them. See [Vercel environment variables](https://vercel.com/docs/environment-variables) and [Next.js deployment options](https://nextjs.org/docs/app/getting-started/deploying).
+The app uses Node.js server routes and can be deployed as a Next.js project on Vercel. For Vercel, use Supabase's **shared transaction pooler** connection string from Project → Connect → Transaction pooler; the direct `db.<project>.supabase.co` endpoint is IPv6-only on most plans, while Vercel requires an IPv4-reachable endpoint. The app disables named prepared statements on port `6543` for transaction-pooler compatibility. This interview-demo configuration currently uses plain TCP because TLS negotiation failed for the configured endpoint. Do not use it with real personal documents or production user accounts. Configure these server-side variables in Vercel for Preview and Production: `DATABASE_URL`, `BETTER_AUTH_SECRET` (a fresh random secret of at least 32 characters), `BETTER_AUTH_URL` (the exact deployed origin, such as `https://your-project.vercel.app`), `SUPABASE_URL`, and `SUPABASE_SECRET_KEY`. The synthetic issuer uses an in-memory demo signing key and needs no issuer key files or issuer key environment variables. Its signature is only a demonstration check, not real credential trust. Never use `NEXT_PUBLIC_` for server-only values. Apply auth/app migrations and issuer seed to the production Supabase project before deploying. After setting or changing variables, redeploy so the deployment receives them. See [Vercel environment variables](https://vercel.com/docs/environment-variables) and [Next.js deployment options](https://nextjs.org/docs/app/getting-started/deploying).
 
 ## 10. Supabase PostgreSQL and Storage setup
 
@@ -439,6 +437,7 @@ Do not consider the MVP complete because the happy path works once. Implement te
 
 - The bucket is private and unauthenticated direct access fails.
 - A user can access only their own authorized document through the server.
+- A seeded demo fixture can be retrieved only by its assigned demo account; two-account tests cover both cross-access directions.
 - Storage upload failure does not create a completed request.
 - If upload succeeds but metadata persistence fails, retry/reconciliation does not create duplicate wallet records.
 - Repeated requests with the same idempotency key do not create duplicate results.
@@ -453,6 +452,8 @@ Do not consider the MVP complete because the happy path works once. Implement te
 - Lint, type checks, tests, and production build pass, or any known failure is explicitly documented.
 
 ## 13. Suggested implementation milestones
+
+For the staged architecture beyond this interview MVP, see [`docs/architecture-roadmap.md`](docs/architecture-roadmap.md). It adapts public ecosystem patterns while keeping this project independent, synthetic-data-only, and deployable as a modular monolith.
 
 Work in small stages. Do not start by implementing every feature at once.
 

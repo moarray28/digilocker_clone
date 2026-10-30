@@ -7,7 +7,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint app components lib scripts tests auth.ts proxy.ts eslint.config.mjs",
-    "test": "node --import tsx --test tests/issuer-validation.test.ts tests/manifest-core.test.ts",
+    "test": "node --import tsx --test tests/issuer-validation.test.ts tests/manifest-core.test.ts tests/demo-record-lookup.test.ts tests/demo-issuer-key.test.ts",
+    "test:ownership:integration": "node --import tsx --test tests/demo-record-ownership.integration.test.ts",
     "typecheck": "tsc --noEmit",
     "setup:check": "node scripts/check-local-setup.mjs",
     "supabase:check": "node scripts/check-supabase-connectivity.mjs",
@@ -15,8 +16,7 @@
     "db:auth:migrate": "node scripts/migrate-auth.mjs",
     "db:seed:demo-user": "node --import tsx scripts/seed-demo-user.mjs",
     "db:app:migrate": "node --import tsx scripts/migrate-app.mjs",
-    "db:seed:issuer": "node --import tsx scripts/seed-synthetic-issuer.mjs",
-    "issuer:keys:generate": "node scripts/generate-issuer-test-keys.mjs"
+    "db:seed:issuer": "node --import tsx scripts/seed-synthetic-issuer.mjs"
   },
   "dependencies": {
     "next": "^16.0.0",

@@ -13,6 +13,7 @@ INSERT INTO issuer_test_records (
 VALUES
   ('demo-record-active-01', 'demo-school-board', 'demo-cert-active-2025-01', 'Aarav Sample', 'DEMO-25001', 2025, 'secondary', 'active', 'valid'),
   ('demo-record-active-02', 'demo-school-board', 'demo-cert-active-2024-02', 'Isha Example', 'DEMO-24002', 2024, 'higher_secondary', 'active', 'valid'),
+  ('demo-record-active-03', 'demo-school-board', 'demo-cert-active-2026-06', 'Nila Demo', 'DEMO-26006', 2026, 'secondary', 'active', 'valid'),
   ('demo-record-revoked-01', 'demo-school-board', 'demo-cert-revoked-2023-01', 'Kabir Test', 'DEMO-23003', 2023, 'secondary', 'revoked', 'valid'),
   ('demo-record-superseded-01', 'demo-school-board', 'demo-cert-old-2022-01', 'Mira Fiction', 'DEMO-22004', 2022, 'higher_secondary', 'superseded', 'valid'),
   ('demo-record-invalid-signature-01', 'demo-school-board', 'demo-cert-invalid-signature-2025-05', 'Rehan Placeholder', 'DEMO-25005', 2025, 'secondary', 'active', 'invalid')

@@ -19,12 +19,13 @@ The project has a responsive wallet UI, Better Auth email/password sign-in backe
 
 ## Local readiness and database setup
 
-1. Copy `.env.example` to `.env.local` (or use the existing root `.env`) and fill in the Supabase PostgreSQL connection string, Better Auth secret, Supabase URL, Supabase Secret key, and issuer test key ID. In the dashboard, get the key at **Project Settings → API Keys → Secret keys**. Paste the value beginning with `sb_secret_` into `SUPABASE_SECRET_KEY`; do not use the publishable key. The app also supports the legacy `service_role` JWT in `SUPABASE_SERVICE_ROLE_KEY`. Keep local env files and `.secrets/` private. The default Better Auth URL, bucket name, key paths, and issuer failure mode can be omitted.
+1. Copy `.env.example` to `.env.local` (or use the existing root `.env`) and fill in the Supabase PostgreSQL connection string, Better Auth secret, and Supabase URL. In the dashboard, get the Storage key at **Project Settings → API Keys → Secret keys**. Paste the value beginning with `sb_secret_` into `SUPABASE_SECRET_KEY`; do not use the publishable key. The app also supports the legacy `service_role` JWT in `SUPABASE_SERVICE_ROLE_KEY`. Keep local env files private. The synthetic issuer needs no signing-key files or issuer-key environment variables.
 2. Set `DATABASE_URL` to the Supabase PostgreSQL connection string. For Vercel, use the shared transaction pooler URL. The current interview demo uses plain TCP for database connections.
-3. Run `npm run issuer:keys:generate` to create a local Ed25519 issuer key pair, then run `npm run setup:check`. The preflight reports missing setting names only; it never prints secret values. Use `npm run supabase:check` to make read-only connectivity checks for the private Storage bucket and PostgreSQL.
+3. Run `npm run setup:check`. The preflight reports missing setting names only; it never prints secret values. Use `npm run supabase:check` to make read-only connectivity checks for the private Storage bucket and PostgreSQL.
 4. Run `npm run supabase:bucket:create` to create `certificate-files` as a private bucket with PDF-only uploads and a 10 MB limit. If that bucket already exists as public, the script leaves it unchanged and asks you to fix it in Supabase Storage settings. Do not expose the server key to the browser.
-5. Run `npm run db:auth:migrate`, `npm run db:app:migrate`, and `npm run db:seed:issuer`. Optionally seed a local demo account as documented in `docs-auth.md`.
-6. Run `npm run dev`, create/sign in to a demo account, open `/wallet`, and request the default synthetic fixture.
+5. Run `npm run db:auth:migrate` and `npm run db:app:migrate`.
+6. Run `npm run dev`, create the three demo accounts listed in `docs-auth.md` with distinct private passwords, then run `npm run db:seed:issuer` to seed and assign each synthetic fixture.
+7. Sign in with an assigned account, open `/wallet`, and request only the fixture assigned to that account.
 
 The app does not provision a Supabase project or bucket automatically. The database schema and synthetic issuer seed are applied to the configured project. Before the retrieval flow can store PDFs, create the private `certificate-files` Storage bucket (or set `SUPABASE_STORAGE_BUCKET` to its private bucket name), add the Supabase Secret key, and confirm with `npm run setup:check` and `npm run supabase:check`.
 

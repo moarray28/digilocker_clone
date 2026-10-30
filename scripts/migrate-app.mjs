@@ -2,9 +2,10 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import nextEnv from "@next/env";
+import { createScriptDatabasePool } from "./database-pool.mjs";
 
 nextEnv.loadEnvConfig(process.cwd());
-const { database } = await import("../lib/database.ts");
+const database = createScriptDatabasePool();
 
 const client = await database.connect();
 try {

@@ -191,3 +191,77 @@ Recommendation: Keep issuer fixtures in Supabase PostgreSQL and provide an idemp
 Changes made: Added early server-side validation to the certificate request route so malformed lookup details return HTTP 400 before database request creation. Added a synthetic issuer SQL example and exact re-seeding instructions to docs-issuer.md; updated README milestone status.
 Validation: npm run setup:check passed; npm run typecheck passed; npm test passed (7 tests). npm run lint started but stalled without output and was stopped. No production build run.
 Open issues: User should add only fictional records. Complete deployed retrieval/failure-state and two-account ownership checks; investigate lint stall if it recurs.
+---
+Timestamp: 2026-10-28T20:11:49+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Plan the next architecture milestone using public DigiLocker ecosystem patterns, with security as the priority.
+Agent recommendation: Keep a Vercel-deployable modular monolith for now; establish security boundaries first, then add synthetic issuer operations and consent-scoped requester access in later stages.
+Changes made: Added `docs/architecture-roadmap.md` covering current boundaries, a logical component model, security-first stages, expected schema evolution, exit checks, and public references. Linked it from the README. No application security boundary or runtime behavior was changed.
+Validation: Reviewed the README requirements, existing routes, issuer adapter, storage adapter, and schema. No tests or build run because this change adds architecture documentation only.
+Open issues: The next implementation milestone should begin with Stage 1 threat-model and authorization hardening. Requester access and document sharing should wait until the trust model and consent rules are agreed and implemented.
+---
+Timestamp: 2026-10-30T11:19:37+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Keep application code and architecture unchanged; add synthetic demo users and at least ten demo issuers, then explain the full app and security model.
+Agent recommendation: Use the existing Better Auth email/password flow and issuer registry, seed only fictional non-privileged citizens and issuer directory rows, and clearly distinguish registered entries from issuers the current adapter can actually serve.
+Changes made: In progress. Read-only database check found one configured issuer and no example-domain demo users; the current request adapter supports only the existing school-board issuer ID.
+Validation: `node scripts/check-local-setup.mjs` passed. A read-only Supabase database query confirmed one issuer and zero `demo%@example.test` users.
+Open issues: Add requested records only if write access is available. Do not claim the nine directory-only issuer entries work in the current UI/request adapter.
+---
+Timestamp: 2026-10-30T11:22:47+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Keep application code and architecture unchanged; add synthetic demo users and at least ten demo issuers, then explain the full app and security model.
+Recommendation: Seed three citizen-only demo accounts using Better Auth's password hash format and a ten-entry synthetic issuer registry. Keep only the already-supported school-board issuer active; label all other issuers inactive because the current adapter cannot serve them.
+Changes made: Added three synthetic demo citizen accounts and nine synthetic issuer directory entries to the configured Supabase database. The app and architecture code were not changed. Generated demo passwords were provided to the user; none were written to repository files.
+Validation: The seeded issuer registry now contains ten rows with only the school-board issuer active. Better Auth password-hash verification passed for all three demo accounts. `node scripts/check-local-setup.mjs` passed. A seed command timed out after transaction commit; a subsequent read-only query confirmed the committed records, and account password hashes were then reset and verified.
+Open issues: Nine issuer entries are directory examples only; they do not have adapter support, trusted active keys, records, or UI selection. Demo accounts are test-only and should not be used with real data or public production credentials. The complete system explanation is provided in the response.
+---
+Timestamp: 2026-10-30T11:28:17+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Keep code unchanged; make four issuer records active and remove the other six, and explain issuer onboarding/login and real DigiLocker data access.
+Agent recommendation: Retain the school-board simulator and activate three synthetic issuer directory rows, remove the six unused rows, and clearly disclose that the current adapter still only supports the school-board issuer.
+Changes made: In progress. Read-only inspection confirmed the six unused issuers have zero linked synthetic records.
+Validation: Official DigiLocker partner/onboarding pages were reviewed. Database row counts and references were read without exposing credentials.
+Open issues: Apply and verify the requested issuer-directory change without modifying application code.
+---
+Timestamp: 2026-10-30T11:28:47+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Keep code unchanged; make four issuer records active and remove the other six, and explain issuer onboarding/login and real DigiLocker data access.
+Recommendation: Retain the school-board simulator and activate three synthetic issuer directory rows, remove the six unused rows, and clearly disclose that the current adapter still only supports the school-board issuer.
+Changes made: In Supabase, activated `demo-university`, `demo-vocational-board`, and `demo-transport-office`; removed six inactive issuer rows with no linked test records. Application code and architecture were not changed.
+Validation: The transaction confirmed four issuer rows remain and all four are active before commit. No tests or build run because runtime code was unchanged.
+Open issues: The three newly active registry entries have no adapter support, issuer fixtures, or active trusted keys. Only the school-board simulator can currently return a document. Real DigiLocker access requires partner onboarding and authorized API access.
+---
+Timestamp: 2026-10-30T11:34:47+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Ensure one demo account cannot retrieve or read another demo account's synthetic certificate; implement a small fix and thoroughly test working and fallback behavior.
+Agent recommendation: Keep the existing app architecture and bind each synthetic issuer record to exactly one Better Auth user ID in PostgreSQL. Enforce the binding in the server-side issuer lookup and preserve existing owner-scoped document reads.
+Changes made: In progress. Reviewed request, issuer adapter, persistence constraints, tests, setup docs, and current unrelated working-tree changes. No code edits made yet.
+Validation: Not run before implementation.
+Open issues: Implement record ownership, bind the six demo fixtures to the three seeded demo users, then validate cross-user denial, owner access, failure fallbacks, and repository checks without altering unrelated README/log/docs changes.
+
+---
+Timestamp: 2026-10-30T12:10:00+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Diagnose local Alpha issuer setup failure; inspect .env.local and .env.example; remove the synthetic issuer key-file/secret dependency and test local development.
+Agent recommendation: Keep the demo signature verification but generate a process-local Ed25519 key pair for the simulated issuer, so local and Vercel setups need no issuer key files or key environment variables.
+Changes made: Removed issuer private/public key file and environment-variable loading. Added an in-memory demo key pair and fixed demo issuer/key IDs; verification now uses that in-memory public key. Removed obsolete key generation script and issuer key entries from .env.example and .env.local. Updated setup checks and issuer/deployment documentation. Added a key-pair unit test. Added BETTER_AUTH_URL=http://localhost:3000 to .env.local.
+Validation: 12 unit tests passed; Supabase owner isolation integration passed; typecheck, lint, setup check, production build, and git diff --check passed. Next dev detected an existing server on port 3000; HTTP probing was blocked by sandbox socket permissions.
+Open issues: The synthetic signature is demo-only and rotates whenever the server process restarts. The existing dev server was not directly probed over HTTP due sandbox network restrictions.
+
+---
+Timestamp: 2026-10-30T12:35:00+05:30
+Agent type: Codex
+Model: not provided
+User request (sanitized): Provide four working simulated issuers for Alpha, two for Beta, no working issuer for Gamma with a clear warning, and verify issuer fixtures in the database.
+Agent recommendation: Keep the existing single-app architecture; expose active issuer choices and user-specific fixture availability, route requests through the selected issuer, and seed unique owner-bound active fixtures for Alpha and Beta only.
+Changes made: No issuer expansion code or database changes were made. The user redirected work to pushing the current branch and documenting the project.
+Validation: Initial file inspection only. The attempted live database inventory command was rejected by PowerShell parsing; it was not retried.
+Open issues: None for this redirected task.

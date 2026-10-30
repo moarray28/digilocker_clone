@@ -1,10 +1,10 @@
 import "server-only";
-import { createHash, createPrivateKey, sign } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { createHash, sign } from "node:crypto";
 import { database } from "@/lib/database";
 import { createSyntheticCertificatePdf } from "./certificate-pdf";
 import { canonicalizeIssuerManifest } from "@/lib/crypto/issuer-manifest";
+import { findDemoRecordForOwner } from "@/lib/issuer/demo-record-lookup";
+import { DEMO_ISSUER_ID, DEMO_ISSUER_KEY_ID, DEMO_ISSUER_PRIVATE_KEY } from "@/lib/issuer/demo-issuer-key";
 import { validateCertificateLookup } from "./validate-lookup";
 import {
   IssuerConfigurationError,
@@ -16,11 +16,9 @@ import {
 } from "./types";
 
 export interface IssuerAdapter {
-  findCertificate(input: unknown): Promise<IssuerCertificateArtifact | null>;
+  findCertificate(ownerUserId: string, input: unknown): Promise<IssuerCertificateArtifact | null>;
   getCurrentStatus(issuerId: string, certificateReference: string): Promise<CertificateStatus>;
 }
-
-const SIMULATED_ISSUER_ID = "demo-school-board";
 
 function getFailureMode(): IssuerFailureMode {
   const mode = process.env.ISSUER_SIMULATED_FAILURE_MODE ?? "none";
@@ -28,69 +26,28 @@ function getFailureMode(): IssuerFailureMode {
   throw new IssuerConfigurationError("ISSUER_SIMULATED_FAILURE_MODE must be none, unavailable, or status_unavailable.");
 }
 
-function configuredKeyId(): string {
-  const keyId = process.env.ISSUER_TEST_KEY_ID;
-  if (!keyId || !/^[A-Za-z0-9._-]{3,80}$/.test(keyId)) {
-    throw new IssuerConfigurationError("The simulated issuer test key identifier is not configured.");
-  }
-  return keyId;
-}
-
-async function configuredPrivateKey() {
-  const pem = process.env.ISSUER_TEST_PRIVATE_KEY?.trim();
-  if (pem) return createPrivateKey(pem);
-  const filePath = process.env.ISSUER_TEST_PRIVATE_KEY_PATH;
-  if (!filePath) throw new IssuerConfigurationError("ISSUER_TEST_PRIVATE_KEY_PATH is not configured.");
-  return createPrivateKey(await readFile(resolve(process.cwd(), filePath)));
-}
-
 function normalizeLookup(input: unknown): CertificateLookup {
   return validateCertificateLookup(input);
 }
 
 export const simulatedIssuerAdapter: IssuerAdapter = {
-  async findCertificate(input) {
+  async findCertificate(ownerUserId, input) {
     const failureMode = getFailureMode();
     if (failureMode === "unavailable") throw new IssuerUnavailableError();
 
     const lookup = normalizeLookup(input);
-    let result;
+    let record;
     try {
-      result = await database.query(
-        `SELECT r.issuer_id, r.certificate_reference, r.student_name, r.seat_number,
-                r.exam_year, r.education_level, r.signature_scenario,
-                i.display_name AS issuer_name, i.trusted_key_id, i.active AS issuer_active
-         FROM issuer_test_records r
-         JOIN app_issuers i ON i.id = r.issuer_id
-         WHERE r.issuer_id = $1
-           AND lower(btrim(r.student_name)) = lower($2)
-           AND upper(r.seat_number) = $3
-           AND r.exam_year = $4
-           AND r.education_level = $5
-         LIMIT 1`,
-        [SIMULATED_ISSUER_ID, lookup.studentName, lookup.seatNumber, lookup.examYear, lookup.educationLevel],
-      );
+      record = await findDemoRecordForOwner(database, ownerUserId, DEMO_ISSUER_ID, lookup);
     } catch {
       throw new IssuerUnavailableError();
     }
 
-    const record = result.rows[0];
     if (!record) return null;
     if (!record.issuer_active) throw new IssuerUnavailableError();
 
-    const keyId = configuredKeyId();
-    if (record.trusted_key_id !== keyId) {
+    if (record.trusted_key_id !== DEMO_ISSUER_KEY_ID) {
       throw new IssuerConfigurationError("The configured test key identifier does not match the issuer registry.");
-    }
-
-    let privateKey;
-    try {
-      privateKey = await configuredPrivateKey();
-    } catch {
-      throw new IssuerConfigurationError("The simulated issuer signing key could not be loaded.");
-    }
-    if (privateKey.asymmetricKeyType !== "ed25519") {
-      throw new IssuerConfigurationError("The simulated issuer signing key must be Ed25519.");
     }
 
     const certificate: CertificateLookup = {
@@ -116,10 +73,10 @@ export const simulatedIssuerAdapter: IssuerAdapter = {
       examYear: Number(record.exam_year),
       educationLevel: record.education_level as CertificateLookup["educationLevel"],
       issuedAt,
-      keyId,
+      keyId: DEMO_ISSUER_KEY_ID,
       pdfSha256: createHash("sha256").update(pdfBytes).digest("hex"),
     };
-    const signature = sign(null, Buffer.from(canonicalizeIssuerManifest(manifest)), privateKey);
+    const signature = sign(null, Buffer.from(canonicalizeIssuerManifest(manifest)), DEMO_ISSUER_PRIVATE_KEY);
     if (record.signature_scenario === "invalid") signature[0] ^= 0x01;
 
     return { pdfBytes, manifest, signatureBase64: signature.toString("base64") };
@@ -130,7 +87,7 @@ export const simulatedIssuerAdapter: IssuerAdapter = {
     if (failureMode === "unavailable" || failureMode === "status_unavailable") {
       throw new IssuerUnavailableError();
     }
-    if (issuerId !== SIMULATED_ISSUER_ID || !certificateReference) {
+    if (issuerId !== DEMO_ISSUER_ID || !certificateReference) {
       throw new IssuerUnavailableError();
     }
 

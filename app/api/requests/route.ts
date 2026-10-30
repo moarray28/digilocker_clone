@@ -8,6 +8,7 @@ import {
   type CertificateLookup,
 } from "@/lib/issuer/types";
 import { simulatedIssuerAdapter } from "@/lib/issuer/simulated-issuer";
+import { DEMO_ISSUER_ID, DEMO_ISSUER_KEY_ID } from "@/lib/issuer/demo-issuer-key";
 import { validateCertificateLookup } from "@/lib/issuer/validate-lookup";
 import { removePrivatePdf, uploadPrivatePdf } from "@/lib/storage/private-bucket";
 import { headers } from "next/headers";
@@ -102,15 +103,14 @@ export async function POST(request: Request) {
   try {
     await setState("authenticating_request");
     await setState("querying_issuer");
-    const artifact = await simulatedIssuerAdapter.findCertificate(lookup);
+    const artifact = await simulatedIssuerAdapter.findCertificate(user.id, lookup);
     if (!artifact) return await failRequest("no_match", "NO_MATCH", "No sample record matched. Check the fictional fixture details and try again.", 404);
 
     await setState("certificate_received");
     await setState("verifying_signature");
     const verification = await verifyIssuerArtifact(artifact, {
-      issuerId: "demo-school-board",
-      keyId: process.env.ISSUER_TEST_KEY_ID ?? "",
-      publicKeyPath: process.env.ISSUER_TRUSTED_PUBLIC_KEY_PATH ?? "",
+      issuerId: DEMO_ISSUER_ID,
+      keyId: DEMO_ISSUER_KEY_ID,
     });
     if (!verification.integrityVerified) return await failRequest("integrity_failed", "INTEGRITY_FAILED", "The certificate file did not pass its integrity check.", 422);
     if (!verification.signatureVerified) return await failRequest("signature_invalid", "SIGNATURE_INVALID", "The issuer signature could not be verified.", 422);
